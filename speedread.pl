@@ -4,11 +4,11 @@ use Irssi;
 use utf8;
 use Encode;
 
-our $VERSION = '1.2';
+our $VERSION = '1.3';
 our %IRSSI = (
     authors     => 'Juha Kesti',
     contact     => 'nauski@nauski.com',
-    name        => 'readsogood.pl',
+    name        => 'speedread.pl',
     description => 'Bolds the first (1-3) characters of each word.',
     license     => 'Public Domain',
 );

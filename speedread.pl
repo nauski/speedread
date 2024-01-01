@@ -1,8 +1,10 @@
 use strict;
 use warnings;
 use Irssi;
+use utf8;
+use Encode;
 
-our $VERSION = '1.0';
+our $VERSION = '1.2';
 our %IRSSI = (
     authors     => 'Juha Kesti',
     contact     => 'nauski@nauski.com',
@@ -13,35 +15,47 @@ our %IRSSI = (
 
 sub bold_first_three {
     my $msg = shift;
-    my @words = split(/\s+/, $msg);
-    my @processed_words;
+    my @chars = split //, $msg;
+    my $new_msg = "";
+    my $is_color_code = 0;
+    my $char_count = 0;
 
-    for my $word (@words) {
-        if (length($word) > 3) {
-            $word = "\x02" . substr($word, 0, 3) . "\x02" . substr($word, 3);
-        } else {
-            $word = "\x02" . substr($word, 0, 1) . "\x02" . substr($word, 1);
+    foreach my $char (@chars) {
+        if ($char eq "\x03") { 
+            $is_color_code = 1;
+        } elsif ($char =~ /\s/ || $char =~ /\W/) {
+            $char_count = 0;
+            $is_color_code = 0;
         }
-        push @processed_words, $word;
+
+        if ($is_color_code) {
+            $new_msg .= $char;
+            if ($char =~ /[0-9,]/) {
+                next;
+            } else {
+                $is_color_code = 0 if $char =~ /\s/;
+            }
+        } else {
+            if ($char_count < 3 && $char =~ /\w/) {
+                $new_msg .= "\x02" . $char . "\x02";
+                $char_count++;
+            } else {
+                $new_msg .= $char;
+                $char_count++ if $char =~ /\w/;
+            }
+        }
     }
 
-    return join(' ', @processed_words);
-}
-sub outgoing_msg_handler {
-    my ($msg, $server, $witem) = @_;
-    if (defined $witem && ($witem->{type} eq "CHANNEL" || $witem->{type} eq "QUERY")) {
-        my $new_msg = bold_first_three($msg);
-        $witem->command("msg -channel " . $witem->{name} . " $new_msg");
-        Irssi::signal_stop();
-    }
+    return $new_msg;
 }
 
-sub incoming_msg_handler {
+sub message_handler {
     my ($server, $msg, $nick, $address, $target) = @_;
-    my $new_msg = bold_first_three($msg);
-    Irssi::signal_continue($server, $new_msg, $nick, $address, $target);
+    my $decoded_msg = Encode::decode_utf8($msg);
+    my $new_msg = bold_first_three($decoded_msg);
+    my $encoded_msg = Encode::encode_utf8($new_msg);
+    Irssi::signal_continue($server, $encoded_msg, $nick, $address, $target);
 }
 
-Irssi::signal_add('send text', 'outgoing_msg_handler');
-Irssi::signal_add('message public', 'incoming_msg_handler');
-
+Irssi::signal_add_first('message public', 'message_handler');
+Irssi::signal_add_first('message own_public', 'message_handler');

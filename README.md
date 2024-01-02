@@ -1,2 +1,2 @@
-# speedread
-The script bolds the first (1-3) characters of each incoming or outgoing word to make reading easier for people with dyslexia or other reading impairments.
+# speedread.pl
+**Th**e **scr**ipt **bol**ds **th**e **fir**st (1-3) **cha**racters **o**f **eac**h **inc**oming **o**r **out**going **wor**d **t**o **mak**e **rea**ding **eas**ier **fo**r **peo**ple **wit**h **dys**lexia **o**r **oth**er **rea**ding **imp**airments.
